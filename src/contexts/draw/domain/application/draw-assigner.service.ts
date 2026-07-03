@@ -1,0 +1,246 @@
+import { Team } from "../team";
+import { Match } from "../match";
+
+const MAX_MATCHES = 8;
+const MAX_HOME = 4;
+const MAX_AWAY = 4;
+const MATCH_DAYS = 8;
+const MAX_COUNTRY_OPPONENTS = 2;
+
+type TeamState = {
+  opponents: Set<number>;
+  matches: number;
+  home: number;
+  away: number;
+  matchDays: Set<number>;
+  opponentCountries: Map<number, number>;
+};
+
+export class DrawService {
+  static generateMatches(
+    teams: Team[],
+    potAssignments: Map<number, number>,
+    drawId: number
+  ): Match[] {
+    const states = new Map<number, TeamState>();
+    for (const team of teams) {
+      states.set(team.id, {
+        opponents: new Set(),
+        matches: 0,
+        home: 0,
+        away: 0,
+        matchDays: new Set(),
+        opponentCountries: new Map(),
+      });
+    }
+
+    const matches: Match[] = [];
+    const matchIdCounter = { value: 1 };
+
+    console.log(`[DrawService] Starting draw generation for ${teams.length} teams over ${MATCH_DAYS} match days`);
+
+    const success = this.backtrackMatchDay(1, teams, states, matches, drawId, matchIdCounter);
+
+    if (!success) {
+      console.error("[DrawService] No valid draw exists for the given team configuration — constraints are unsatisfiable");
+      throw new Error("No valid draw exists for the given team configuration");
+    }
+
+    console.log(`[DrawService] Draw generated successfully: ${matches.length} matches`);
+    return matches;
+  }
+
+  private static backtrackMatchDay(
+    matchDay: number,
+    teams: Team[],
+    states: Map<number, TeamState>,
+    matches: Match[],
+    drawId: number,
+    matchIdCounter: { value: number }
+  ): boolean {
+    if (matchDay > MATCH_DAYS) {
+      return true;
+    }
+
+    console.log(`[DrawService] Solving match day ${matchDay}...`);
+
+    const available = teams.filter((t) => {
+      const s = states.get(t.id)!;
+      return !s.matchDays.has(matchDay) && s.matches < MAX_MATCHES;
+    });
+
+    return this.backtrackPairings(matchDay, available, teams, states, matches, drawId, matchIdCounter);
+  }
+
+  private static backtrackPairings(
+    matchDay: number,
+    remaining: Team[],
+    allTeams: Team[],
+    states: Map<number, TeamState>,
+    matches: Match[],
+    drawId: number,
+    matchIdCounter: { value: number }
+  ): boolean {
+    if (remaining.length === 0) {
+      return this.backtrackMatchDay(matchDay + 1, allTeams, states, matches, drawId, matchIdCounter);
+    }
+
+    // Pick the most constrained remaining team (fewest valid opponents)
+    const teamA = this.getMostConstrained(remaining, states);
+    const restAfterA = remaining.filter((t) => t.id !== teamA.id);
+
+    const candidates = this.getValidCandidates(teamA, restAfterA, states);
+
+    if (candidates.length === 0) {
+      console.warn(
+        `[DrawService] No valid candidates for team "${teamA.name}" (id=${teamA.id}) on match day ${matchDay}, backtracking...`
+      );
+      return false;
+    }
+
+    // Sort candidates by most constrained first (fewest valid opponents)
+    const sorted = [...candidates].sort((a, b) => {
+      const othersForA = restAfterA.filter((t) => t.id !== a.id);
+      const othersForB = restAfterA.filter((t) => t.id !== b.id);
+      return (
+        this.getValidCandidates(a, othersForA, states).length -
+        this.getValidCandidates(b, othersForB, states).length
+      );
+    });
+
+    for (const teamB of sorted) {
+      const stateA = states.get(teamA.id)!;
+      const stateB = states.get(teamB.id)!;
+
+      const canHome = stateA.home < MAX_HOME && stateB.away < MAX_AWAY;
+      const canAway = stateA.away < MAX_AWAY && stateB.home < MAX_HOME;
+
+      // Try both home/away orientations — backtrack if either leads to a dead end
+      const homeOptions: boolean[] = [];
+      if (canHome) homeOptions.push(true);
+      if (canAway) homeOptions.push(false);
+
+      for (const isHome of homeOptions) {
+        const matchId = matchIdCounter.value++;
+        const match = Match.create(
+          matchId,
+          drawId,
+          isHome ? teamA.id : teamB.id,
+          isHome ? teamB.id : teamA.id,
+          matchDay
+        );
+        matches.push(match);
+        this.applyMatch(teamA, teamB, isHome, matchDay, states);
+
+        const nextRemaining = restAfterA.filter((t) => t.id !== teamB.id);
+        if (this.backtrackPairings(matchDay, nextRemaining, allTeams, states, matches, drawId, matchIdCounter)) {
+          return true;
+        }
+
+        // Undo and try next
+        matches.pop();
+        matchIdCounter.value--;
+        this.undoMatch(teamA, teamB, isHome, matchDay, states);
+      }
+    }
+
+    return false;
+  }
+
+  private static getMostConstrained(teams: Team[], states: Map<number, TeamState>): Team {
+    let mostConstrained = teams[0];
+    let minOptions = Infinity;
+
+    for (const team of teams) {
+      const others = teams.filter((t) => t.id !== team.id);
+      const count = this.getValidCandidates(team, others, states).length;
+      if (count < minOptions) {
+        minOptions = count;
+        mostConstrained = team;
+      }
+    }
+
+    return mostConstrained;
+  }
+
+  private static getValidCandidates(teamA: Team, candidates: Team[], states: Map<number, TeamState>): Team[] {
+    const stateA = states.get(teamA.id)!;
+    return candidates.filter((teamB) => {
+      const stateB = states.get(teamB.id)!;
+      if (stateB.matches >= MAX_MATCHES) return false;
+      if (stateA.opponents.has(teamB.id)) return false;
+      if (teamA.country.id === teamB.country.id) return false;
+
+      const aCountFromB = stateA.opponentCountries.get(teamB.country.id) || 0;
+      const bCountFromA = stateB.opponentCountries.get(teamA.country.id) || 0;
+      if (aCountFromB >= MAX_COUNTRY_OPPONENTS || bCountFromA >= MAX_COUNTRY_OPPONENTS) return false;
+
+      const canHome = stateA.home < MAX_HOME && stateB.away < MAX_AWAY;
+      const canAway = stateA.away < MAX_AWAY && stateB.home < MAX_HOME;
+      return canHome || canAway;
+    });
+  }
+
+  private static applyMatch(
+    teamA: Team,
+    teamB: Team,
+    isHome: boolean,
+    matchDay: number,
+    states: Map<number, TeamState>
+  ): void {
+    const stateA = states.get(teamA.id)!;
+    const stateB = states.get(teamB.id)!;
+
+    stateA.opponents.add(teamB.id);
+    stateB.opponents.add(teamA.id);
+    stateA.matchDays.add(matchDay);
+    stateB.matchDays.add(matchDay);
+    stateA.matches++;
+    stateB.matches++;
+
+    if (isHome) {
+      stateA.home++;
+      stateB.away++;
+    } else {
+      stateA.away++;
+      stateB.home++;
+    }
+
+    stateA.opponentCountries.set(teamB.country.id, (stateA.opponentCountries.get(teamB.country.id) || 0) + 1);
+    stateB.opponentCountries.set(teamA.country.id, (stateB.opponentCountries.get(teamA.country.id) || 0) + 1);
+  }
+
+  private static undoMatch(
+    teamA: Team,
+    teamB: Team,
+    isHome: boolean,
+    matchDay: number,
+    states: Map<number, TeamState>
+  ): void {
+    const stateA = states.get(teamA.id)!;
+    const stateB = states.get(teamB.id)!;
+
+    stateA.opponents.delete(teamB.id);
+    stateB.opponents.delete(teamA.id);
+    stateA.matchDays.delete(matchDay);
+    stateB.matchDays.delete(matchDay);
+    stateA.matches--;
+    stateB.matches--;
+
+    if (isHome) {
+      stateA.home--;
+      stateB.away--;
+    } else {
+      stateA.away--;
+      stateB.home--;
+    }
+
+    const aCount = (stateA.opponentCountries.get(teamB.country.id) || 0) - 1;
+    if (aCount <= 0) stateA.opponentCountries.delete(teamB.country.id);
+    else stateA.opponentCountries.set(teamB.country.id, aCount);
+
+    const bCount = (stateB.opponentCountries.get(teamA.country.id) || 0) - 1;
+    if (bCount <= 0) stateB.opponentCountries.delete(teamA.country.id);
+    else stateB.opponentCountries.set(teamA.country.id, bCount);
+  }
+}

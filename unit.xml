@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Mocha Tests" time="1.463" tests="38" failures="0">
+  <testsuite name="Root Suite" timestamp="2026-07-02T20:48:52" tests="0" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="Champions League Draw API" timestamp="2026-07-02T20:48:52" tests="0" file="/Users/jerem/Documents/fullstack-backend-ucl-challenge-main/test/index.spec.ts" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="POST /draw" timestamp="2026-07-02T20:48:52" tests="10" file="/Users/jerem/Documents/fullstack-backend-ucl-challenge-main/test/index.spec.ts" time="0.676" failures="0">
+    <testcase name="Champions League Draw API POST /draw should create the draw successfully on first call" time="0.062" classname="should create the draw successfully on first call">
+    </testcase>
+    <testcase name="Champions League Draw API POST /draw should return 409 if draw already exists" time="0.034" classname="should return 409 if draw already exists">
+    </testcase>
+    <testcase name="Champions League Draw API POST /draw should generate exactly 144 matches" time="0.037" classname="should generate exactly 144 matches">
+    </testcase>
+    <testcase name="Champions League Draw API POST /draw should ensure each team plays exactly 8 matches" time="0.091" classname="should ensure each team plays exactly 8 matches">
+    </testcase>
+    <testcase name="Champions League Draw API POST /draw should ensure each team has 4 home and 4 away matches" time="0.089" classname="should ensure each team has 4 home and 4 away matches">
+    </testcase>
+    <testcase name="Champions League Draw API POST /draw should ensure no team plays the same opponent twice" time="0.073" classname="should ensure no team plays the same opponent twice">
+    </testcase>
+    <testcase name="Champions League Draw API POST /draw should distribute matches across 8 match days" time="0.038" classname="should distribute matches across 8 match days">
+    </testcase>
+    <testcase name="Champions League Draw API POST /draw should ensure each team plays once per match day" time="0.074" classname="should ensure each team plays once per match day">
+    </testcase>
+    <testcase name="Champions League Draw API POST /draw should respect confederation constraints (no same country)" time="0.039" classname="should respect confederation constraints (no same country)">
+    </testcase>
+    <testcase name="Champions League Draw API POST /draw should limit each team to max 2 opponents from same confederation" time="0.080" classname="should limit each team to max 2 opponents from same confederation">
+    </testcase>
+  </testsuite>
+  <testsuite name="GET /matches" timestamp="2026-07-02T20:48:52" tests="12" file="/Users/jerem/Documents/fullstack-backend-ucl-challenge-main/test/index.spec.ts" time="0.437" failures="0">
+    <testcase name="Champions League Draw API GET /matches should return matches with pagination" time="0.003" classname="should return matches with pagination">
+    </testcase>
+    <testcase name="Champions League Draw API GET /matches should return matches with id field" time="0.002" classname="should return matches with id field">
+    </testcase>
+    <testcase name="Champions League Draw API GET /matches should filter matches by teamId" time="0.001" classname="should filter matches by teamId">
+    </testcase>
+    <testcase name="Champions League Draw API GET /matches should filter matches by matchDay" time="0.002" classname="should filter matches by matchDay">
+    </testcase>
+    <testcase name="Champions League Draw API GET /matches should filter matches by both teamId and matchDay" time="0.002" classname="should filter matches by both teamId and matchDay">
+    </testcase>
+    <testcase name="Champions League Draw API GET /matches should return empty array when no matches match filter" time="0.002" classname="should return empty array when no matches match filter">
+    </testcase>
+    <testcase name="Champions League Draw API GET /matches should handle pagination correctly" time="0.004" classname="should handle pagination correctly">
+    </testcase>
+    <testcase name="Champions League Draw API GET /matches should use default pagination when not provided" time="0.002" classname="should use default pagination when not provided">
+    </testcase>
+    <testcase name="Champions League Draw API GET /matches should return 400 for invalid page number" time="0.001" classname="should return 400 for invalid page number">
+    </testcase>
+    <testcase name="Champions League Draw API GET /matches should return 400 for negative page number" time="0.001" classname="should return 400 for negative page number">
+    </testcase>
+    <testcase name="Champions League Draw API GET /matches should return 400 for limit greater than 100" time="0.001" classname="should return 400 for limit greater than 100">
+    </testcase>
+    <testcase name="Champions League Draw API GET /matches should return 400 for negative limit" time="0.001" classname="should return 400 for negative limit">
+    </testcase>
+  </testsuite>
+  <testsuite name="GET /matches without draw" timestamp="2026-07-02T20:48:53" tests="1" file="/Users/jerem/Documents/fullstack-backend-ucl-challenge-main/test/index.spec.ts" time="0.003" failures="0">
+    <testcase name="Champions League Draw API GET /matches without draw should return empty array when no draw exists" time="0.002" classname="should return empty array when no draw exists">
+    </testcase>
+  </testsuite>
+  <testsuite name="Draw Algorithm Robustness" timestamp="2026-07-02T20:48:53" tests="3" file="/Users/jerem/Documents/fullstack-backend-ucl-challenge-main/test/index.spec.ts" time="0.185" failures="0">
+    <testcase name="Champions League Draw API Draw Algorithm Robustness should consistently generate valid draws on multiple attempts" time="0.103" classname="should consistently generate valid draws on multiple attempts">
+    </testcase>
+    <testcase name="Champions League Draw API Draw Algorithm Robustness should not have any duplicate matches" time="0.036" classname="should not have any duplicate matches">
+    </testcase>
+    <testcase name="Champions League Draw API Draw Algorithm Robustness should have valid match day distribution (18 matches per day)" time="0.041" classname="should have valid match day distribution (18 matches per day)">
+    </testcase>
+  </testsuite>
+  <testsuite name="Validation Edge Cases" timestamp="2026-07-02T20:48:53" tests="6" file="/Users/jerem/Documents/fullstack-backend-ucl-challenge-main/test/index.spec.ts" time="0.077" failures="0">
+    <testcase name="Champions League Draw API Validation Edge Cases should return 400 for invalid matchDay (0)" time="0.000" classname="should return 400 for invalid matchDay (0)">
+    </testcase>
+    <testcase name="Champions League Draw API Validation Edge Cases should return 400 for invalid matchDay (9)" time="0.000" classname="should return 400 for invalid matchDay (9)">
+    </testcase>
+    <testcase name="Champions League Draw API Validation Edge Cases should return 400 for invalid matchDay (-1)" time="0.000" classname="should return 400 for invalid matchDay (-1)">
+    </testcase>
+    <testcase name="Champions League Draw API Validation Edge Cases should handle page beyond total pages gracefully" time="0.036" classname="should handle page beyond total pages gracefully">
+    </testcase>
+    <testcase name="Champions League Draw API Validation Edge Cases should return 400 for limit of 0" time="0.001" classname="should return 400 for limit of 0">
+    </testcase>
+    <testcase name="Champions League Draw API Validation Edge Cases should return appropriate response for non-existent teamId" time="0.033" classname="should return appropriate response for non-existent teamId">
+    </testcase>
+  </testsuite>
+  <testsuite name="GET /draw" timestamp="2026-07-02T20:48:53" tests="2" file="/Users/jerem/Documents/fullstack-backend-ucl-challenge-main/test/index.spec.ts" time="0.038" failures="0">
+    <testcase name="Champions League Draw API GET /draw should return 404 when no draw exists" time="0.001" classname="should return 404 when no draw exists">
+    </testcase>
+    <testcase name="Champions League Draw API GET /draw should return draw details after creation" time="0.035" classname="should return draw details after creation">
+    </testcase>
+  </testsuite>
+  <testsuite name="DELETE /draw" timestamp="2026-07-02T20:48:53" tests="2" file="/Users/jerem/Documents/fullstack-backend-ucl-challenge-main/test/index.spec.ts" time="0.044" failures="0">
+    <testcase name="Champions League Draw API DELETE /draw should delete the current draw successfully" time="0.040" classname="should delete the current draw successfully">
+    </testcase>
+    <testcase name="Champions League Draw API DELETE /draw should return 404 when trying to delete non-existent draw" time="0.001" classname="should return 404 when trying to delete non-existent draw">
+    </testcase>
+  </testsuite>
+  <testsuite name="GET /health" timestamp="2026-07-02T20:48:53" tests="2" file="/Users/jerem/Documents/fullstack-backend-ucl-challenge-main/test/index.spec.ts" time="0.002" failures="0">
+    <testcase name="Champions League Draw API GET /health should return 200 with health status" time="0.001" classname="should return 200 with health status">
+    </testcase>
+    <testcase name="Champions League Draw API GET /health should include service information" time="0.001" classname="should include service information">
+    </testcase>
+  </testsuite>
+</testsuites>
