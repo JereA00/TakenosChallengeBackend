@@ -34,8 +34,6 @@ export class DrawService {
     const matches: Match[] = [];
     const matchIdCounter = { value: 1 };
 
-    console.log(`[DrawService] Starting draw generation for ${teams.length} teams over ${MATCH_DAYS} match days`);
-
     const success = this.backtrackMatchDay(1, teams, states, matches, drawId, matchIdCounter);
 
     if (!success) {
@@ -43,7 +41,6 @@ export class DrawService {
       throw DrawErrors.generationFailed();
     }
 
-    console.log(`[DrawService] Draw generated successfully: ${matches.length} matches`);
     return matches;
   }
 
@@ -59,34 +56,32 @@ export class DrawService {
       return true;
     }
 
-    console.log(`[DrawService] Solving match day ${matchDay}...`);
-
-    const available = teams.filter((t) => {
-      const s = states.get(t.id)!;
-      return !s.matchDays.has(matchDay) && s.matches < MAX_MATCHES;
+    const remainingTeams = teams.filter((t) => {
+      const teamState = states.get(t.id)!;
+      return !teamState.matchDays.has(matchDay) && teamState.matches < MAX_MATCHES;
     });
 
-    return this.backtrackPairings(matchDay, available, teams, states, matches, drawId, matchIdCounter);
+    return this.backtrackPairings(matchDay, remainingTeams, teams, states, matches, drawId, matchIdCounter);
   }
 
   private static backtrackPairings(
     matchDay: number,
-    remaining: Team[],
+    remainingTeams: Team[],
     allTeams: Team[],
     states: Map<number, TeamState>,
     matches: Match[],
     drawId: number,
     matchIdCounter: { value: number }
   ): boolean {
-    if (remaining.length === 0) {
+    if (remainingTeams.length === 0) {
       return this.backtrackMatchDay(matchDay + 1, allTeams, states, matches, drawId, matchIdCounter);
     }
 
     // Pick the most constrained remaining team (fewest valid opponents)
-    const teamA = this.getMostConstrained(remaining, states);
-    const restAfterA = remaining.filter((t) => t.id !== teamA.id);
+    const teamA = this.getMostConstrained(remainingTeams, states);
+    const restAfterTeamA = remainingTeams.filter((t) => t.id !== teamA.id);
 
-    const candidates = this.getValidCandidates(teamA, restAfterA, states);
+    const candidates = this.getValidCandidates(teamA, restAfterTeamA, states);
 
     if (candidates.length === 0) {
       console.warn(
@@ -97,8 +92,8 @@ export class DrawService {
 
     // Sort candidates by most constrained first (fewest valid opponents)
     const sorted = [...candidates].sort((a, b) => {
-      const othersForA = restAfterA.filter((t) => t.id !== a.id);
-      const othersForB = restAfterA.filter((t) => t.id !== b.id);
+      const othersForA = restAfterTeamA.filter((t) => t.id !== a.id);
+      const othersForB = restAfterTeamA.filter((t) => t.id !== b.id);
       return (
         this.getValidCandidates(a, othersForA, states).length -
         this.getValidCandidates(b, othersForB, states).length
@@ -129,7 +124,7 @@ export class DrawService {
         matches.push(match);
         this.applyMatch(teamA, teamB, isHome, matchDay, states);
 
-        const nextRemaining = restAfterA.filter((t) => t.id !== teamB.id);
+        const nextRemaining = restAfterTeamA.filter((t) => t.id !== teamB.id);
         if (this.backtrackPairings(matchDay, nextRemaining, allTeams, states, matches, drawId, matchIdCounter)) {
           return true;
         }
@@ -144,13 +139,13 @@ export class DrawService {
     return false;
   }
 
-  private static getMostConstrained(teams: Team[], states: Map<number, TeamState>): Team {
-    let mostConstrained = teams[0];
+  private static getMostConstrained(remainingTeams: Team[], states: Map<number, TeamState>): Team {
+    let mostConstrained = remainingTeams[0];
     let minOptions = Infinity;
 
-    for (const team of teams) {
-      const others = teams.filter((t) => t.id !== team.id);
-      const count = this.getValidCandidates(team, others, states).length;
+    for (const team of remainingTeams) {
+      const candidates = remainingTeams.filter((t) => t.id !== team.id);
+      const count = this.getValidCandidates(team, candidates, states).length;
       if (count < minOptions) {
         minOptions = count;
         mostConstrained = team;
