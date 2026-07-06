@@ -1,5 +1,6 @@
-import { Team } from "../team";
-import { Match } from "../match";
+import { Team } from "../team.js";
+import { Match } from "../match.js";
+import { DrawErrors } from "../exceptions/draw.errors.js";
 
 const MAX_MATCHES = 8;
 const MAX_HOME = 4;
@@ -17,11 +18,7 @@ type TeamState = {
 };
 
 export class DrawService {
-  static generateMatches(
-    teams: Team[],
-    potAssignments: Map<number, number>,
-    drawId: number
-  ): Match[] {
+  static generateMatches(teams: Team[], drawId: number): Match[] {
     const states = new Map<number, TeamState>();
     for (const team of teams) {
       states.set(team.id, {
@@ -43,7 +40,7 @@ export class DrawService {
 
     if (!success) {
       console.error("[DrawService] No valid draw exists for the given team configuration — constraints are unsatisfiable");
-      throw new Error("No valid draw exists for the given team configuration");
+      throw DrawErrors.generationFailed();
     }
 
     console.log(`[DrawService] Draw generated successfully: ${matches.length} matches`);

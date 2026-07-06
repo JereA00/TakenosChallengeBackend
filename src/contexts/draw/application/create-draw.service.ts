@@ -3,7 +3,7 @@ import { TYPES } from "../../../shared/container/types.js";
 import { Draw } from "../domain/draw.js";
 import { DrawRepository } from "../domain/draw.repository.js";
 import { PotAssigner } from "../domain/application/pot-assigner.service.js";
-import { DrawAlreadyExistsError } from "../domain/exceptions/draw-already-exists.error.js";
+import { DrawErrors } from "../domain/exceptions/draw.errors.js";
 
 @injectable()
 export class CreateDrawService {
@@ -17,7 +17,7 @@ export class CreateDrawService {
     const existing = await this.drawRepository.searchCurrent();
     if (existing) {
       console.warn("[CreateDrawService] Draw already exists, aborting");
-      throw new DrawAlreadyExistsError();
+      throw DrawErrors.alreadyExists();
     }
 
     console.log("[CreateDrawService] Fetching teams...");

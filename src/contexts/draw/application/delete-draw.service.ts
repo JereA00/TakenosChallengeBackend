@@ -1,6 +1,7 @@
 import { injectable, inject } from "inversify";
 import { TYPES } from "../../../shared/container/types.js";
 import { DrawRepository } from "../domain/draw.repository.js";
+import { DrawErrors } from "../domain/exceptions/draw.errors.js";
 
 @injectable()
 export class DeleteDrawService {
@@ -12,7 +13,7 @@ export class DeleteDrawService {
   public async run(): Promise<void> {
     const existing = await this.drawRepository.searchCurrent();
     if (!existing) {
-      throw new Error("No draw found");
+      throw DrawErrors.notFound();
     }
 
     await this.drawRepository.deleteAll();

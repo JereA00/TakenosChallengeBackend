@@ -75,13 +75,13 @@ describe('DrawService', () => {
 
   describe('generateMatches', () => {
     it('should generate exactly 144 matches', () => {
-      const matches = DrawService.generateMatches(teams, potAssignments, 1);
+      const matches = DrawService.generateMatches(teams, 1);
 
       expect(matches).toHaveLength(144);
     });
 
     it('should ensure each team plays exactly 8 matches', () => {
-      const matches = DrawService.generateMatches(teams, potAssignments, 1);
+      const matches = DrawService.generateMatches(teams, 1);
 
       // Count matches per team
       teams.forEach(team => {
@@ -93,7 +93,7 @@ describe('DrawService', () => {
     });
 
     it('should ensure each team has exactly 4 home and 4 away matches', () => {
-      const matches = DrawService.generateMatches(teams, potAssignments, 1);
+      const matches = DrawService.generateMatches(teams, 1);
 
       teams.forEach(team => {
         const homeMatches = matches.filter(m => m.homeTeamId === team.id);
@@ -105,7 +105,7 @@ describe('DrawService', () => {
     });
 
     it('should ensure no team plays the same opponent twice', () => {
-      const matches = DrawService.generateMatches(teams, potAssignments, 1);
+      const matches = DrawService.generateMatches(teams, 1);
 
       teams.forEach(team => {
         const teamMatches = matches.filter(
@@ -123,7 +123,7 @@ describe('DrawService', () => {
     });
 
     it('should not allow teams from the same country to play each other', () => {
-      const matches = DrawService.generateMatches(teams, potAssignments, 1);
+      const matches = DrawService.generateMatches(teams, 1);
 
       matches.forEach(match => {
         const homeTeam = teams.find(t => t.id === match.homeTeamId)!;
@@ -134,7 +134,7 @@ describe('DrawService', () => {
     });
 
     it('should limit each team to max 2 opponents from the same country', () => {
-      const matches = DrawService.generateMatches(teams, potAssignments, 1);
+      const matches = DrawService.generateMatches(teams, 1);
 
       teams.forEach(team => {
         const teamMatches = matches.filter(
@@ -162,7 +162,7 @@ describe('DrawService', () => {
     });
 
     it('should distribute matches across 8 match days', () => {
-      const matches = DrawService.generateMatches(teams, potAssignments, 1);
+      const matches = DrawService.generateMatches(teams, 1);
 
       const matchesByDay = new Map<number, number>();
 
@@ -181,7 +181,7 @@ describe('DrawService', () => {
     });
 
     it('should ensure each team plays once per match day', () => {
-      const matches = DrawService.generateMatches(teams, potAssignments, 1);
+      const matches = DrawService.generateMatches(teams, 1);
 
       teams.forEach(team => {
         const teamMatches = matches.filter(
@@ -202,7 +202,7 @@ describe('DrawService', () => {
     });
 
     it('should not have duplicate matches', () => {
-      const matches = DrawService.generateMatches(teams, potAssignments, 1);
+      const matches = DrawService.generateMatches(teams, 1);
 
       const matchKeys = new Set<string>();
 
@@ -222,9 +222,9 @@ describe('DrawService', () => {
     it('should generate consistent results across multiple runs', () => {
       // Run the algorithm 3 times
       const results = [
-        DrawService.generateMatches(teams, potAssignments, 1),
-        DrawService.generateMatches(teams, potAssignments, 2),
-        DrawService.generateMatches(teams, potAssignments, 3),
+        DrawService.generateMatches(teams, 1),
+        DrawService.generateMatches(teams, 2),
+        DrawService.generateMatches(teams, 3),
       ];
 
       // All should generate 144 matches
@@ -244,7 +244,7 @@ describe('DrawService', () => {
     });
 
     it('should handle teams with the same country correctly', () => {
-      const matches = DrawService.generateMatches(teams, potAssignments, 1);
+      const matches = DrawService.generateMatches(teams, 1);
 
       // Find teams from the same country
       const spainTeams = teams.filter(t => t.country.id === 1); // Spain has 3 teams
@@ -280,7 +280,7 @@ describe('DrawService', () => {
     });
 
     it('should assign valid match IDs starting from 1', () => {
-      const matches = DrawService.generateMatches(teams, potAssignments, 1);
+      const matches = DrawService.generateMatches(teams, 1);
 
       const matchIds = matches.map(m => m.id).sort((a, b) => a - b);
 
@@ -297,7 +297,7 @@ describe('DrawService', () => {
 
     it('should assign correct drawId to all matches', () => {
       const drawId = 42;
-      const matches = DrawService.generateMatches(teams, potAssignments, drawId);
+      const matches = DrawService.generateMatches(teams, drawId);
       
       matches.forEach(match => {
         expect(match.drawId).toBe(drawId);

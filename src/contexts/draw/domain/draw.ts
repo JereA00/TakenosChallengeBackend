@@ -1,7 +1,9 @@
-import { AggregateRoot } from "../../../shared/domain/aggregate-root";
-import { DrawService } from "./application/draw-assigner.service";
-import { Match } from "./match";
-import { Team, TeamPrimitives } from "./team";
+import { AggregateRoot } from "../../../shared/domain/aggregate-root.js";
+import { DrawService } from "./application/draw-assigner.service.js";
+import { Match } from "./match.js";
+import { Team, TeamPrimitives } from "./team.js";
+import { PotAssigner } from "./application/pot-assigner.service.js";
+import { DrawErrors } from "./exceptions/draw.errors.js";
 
 export interface PotAssignment {
   team: Team;
@@ -64,8 +66,8 @@ export class Draw extends AggregateRoot {
     teams: Team[],
     potAssignments: Map<number, number>
   ): Draw {
-    if (teams.length !== 36) {
-      throw new Error("Draw requires exactly 36 teams");
+    if (teams.length !== PotAssigner.EXPECTED_TEAMS) {
+      throw DrawErrors.invalidTeamCount(PotAssigner.EXPECTED_TEAMS, teams.length);
     }
 
     const matches: Match[] = [];
@@ -75,12 +77,7 @@ export class Draw extends AggregateRoot {
   }
 
   private generateMatches(): void {
-    // Use 1 as temporary drawId - will be updated when saved to DB
-    this.matches = DrawService.generateMatches(
-      this.teams,
-      this.teamPotAssignments,
-      1
-    );
+    this.matches = DrawService.generateMatches(this.teams, 1);
   }
 
   public getTeamIdsByPot(potId: number): number[] {
@@ -163,7 +160,8 @@ export class Draw extends AggregateRoot {
       const awayTeam = teamMap.get(matchPrimitives.awayTeamId);
 
       if (!homeTeam || !awayTeam) {
-        throw new Error("Match references non-existent team");
+        console.error(`[Draw] Data integrity error: match id=${matchPrimitives.id} references non-existent team`);
+        throw DrawErrors.matchReferencesNonExistentTeam();
       }
 
       return {

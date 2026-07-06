@@ -5,7 +5,7 @@ import { CreateDrawService } from "../application/create-draw.service.js";
 import { SearchCurrentDrawService } from "../application/search-current-draw.service.js";
 import { DeleteDrawService } from "../application/delete-draw.service.js";
 import { DrawStatisticsService } from "../application/draw-statistics.service.js";
-import { DrawAlreadyExistsError } from "../domain/exceptions/draw-already-exists.error.js";
+import { AppError } from "../../../shared/domain/exceptions/app-error.js";
 
 export const drawRouter = Router();
 
@@ -20,8 +20,8 @@ drawRouter.post(
 
       return res.status(201).json({ message: "Draw created successfully" });
     } catch (error) {
-      if (error instanceof DrawAlreadyExistsError) {
-        return res.status(409).send("Draw already exists");
+      if (error instanceof AppError && error.code === "DRAW_ALREADY_EXISTS") {
+        return res.status(409).json({ message: error.message });
       }
       if (error instanceof Error) {
         return res.status(400).json({ message: error.message });
@@ -88,7 +88,7 @@ drawRouter.delete(
 
       return res.status(200).json({ message: "Draw deleted successfully" });
     } catch (error) {
-      if (error instanceof Error && error.message === "No draw found") {
+      if (error instanceof AppError && error.code === "DRAW_NOT_FOUND") {
         return res.status(404).json({ message: error.message });
       }
       if (error instanceof Error) {

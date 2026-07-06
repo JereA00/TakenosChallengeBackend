@@ -6,6 +6,7 @@ import {
   PaginationParams,
 } from "../domain/match.repository.js";
 import { MatchEntity } from "../domain/match.entity.js";
+import { MatchErrors } from "../domain/exceptions/matches.errors.js";
 
 export interface SearchMatchesParams {
   teamId?: number;
@@ -61,7 +62,7 @@ export class SearchMatchesService {
     const limit = params.limit ?? 10;
 
     if (page < 1) {
-      throw new Error("Page must be greater than 0");
+      throw MatchErrors.invalidPage();
     }
 
     const validatedLimit = limit > 100 ? 10 : limit;
