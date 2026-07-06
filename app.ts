@@ -7,6 +7,7 @@ import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import { initializeDatabase } from "./src/shared/infrastructure/database.js";
 import { registerRoutes } from "./src/shared/infrastructure/routes.js";
+import { errorHandlerMiddleware } from "./src/shared/infrastructure/error-handler.middleware.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -28,5 +29,8 @@ initializeDatabase();
 
 // Register application routes
 registerRoutes(app);
+
+// Global error handler — must be registered after routes
+app.use(errorHandlerMiddleware);
 
 export default app;

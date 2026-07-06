@@ -1,8 +1,11 @@
 import { Router, Request, Response, NextFunction } from "express";
+import { z } from "zod";
 import { container } from "../../../shared/container/container.js";
 import { TYPES } from "../../../shared/container/types.js";
 import { SearchTeamsService } from "../application/search-teams.service.js";
 import { SearchTeamService } from "../application/search-team.service.js";
+
+const teamIdSchema = z.object({ id: z.coerce.number().int().positive() });
 
 export const teamsRouter = Router();
 
@@ -26,10 +29,11 @@ teamsRouter.get(
   "/teams/:id",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(req.params.id, 10);
-      if (isNaN(id)) {
+      const parsed = teamIdSchema.safeParse(req.params);
+      if (!parsed.success) {
         return res.status(400).json({ message: "Invalid team id" });
       }
+      const { id } = parsed.data;
 
       const service = container.get<SearchTeamService>(TYPES.SearchTeamService);
       const result = await service.run(id);
