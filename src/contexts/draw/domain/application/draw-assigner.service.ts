@@ -91,16 +91,16 @@ export class DrawService {
     }
 
     // Sort candidates by most constrained first (fewest valid opponents)
-    const sorted = [...candidates].sort((a, b) => {
-      const othersForA = restAfterTeamA.filter((t) => t.id !== a.id);
-      const othersForB = restAfterTeamA.filter((t) => t.id !== b.id);
+    const sortedCandidates = [...candidates].sort((a, b) => {
+      const othersForTeamA = restAfterTeamA.filter((t) => t.id !== a.id);
+      const othersForTeamB = restAfterTeamA.filter((t) => t.id !== b.id);
       return (
-        this.getValidCandidates(a, othersForA, states).length -
-        this.getValidCandidates(b, othersForB, states).length
+        this.getValidCandidates(a, othersForTeamA, states).length -
+        this.getValidCandidates(b, othersForTeamB, states).length
       );
     });
 
-    for (const teamB of sorted) {
+    for (const teamB of sortedCandidates) {
       const stateA = states.get(teamA.id)!;
       const stateB = states.get(teamB.id)!;
 
