@@ -174,14 +174,14 @@ Si quieres destacarte, puedes agregar:
 - Ordenamiento personalizado (por jornada, equipo, etc.)
 
 ### 📝 Documentación
-- Documentar la API con Swagger/OpenAPI
-- Diagrams de arquitectura
-- Colección de Postman/Insomnia
+- ✅ API documentada con Swagger/OpenAPI — disponible en `GET /api-docs`
+- ✅ Diagramas de arquitectura — ver sección [Diagramas de Arquitectura](#️-diagramas-de-arquitectura)
+- ✅ Colección de Postman — disponible en `docs/postman-collection.json`
 
 ### 🧪 Testing
-- Aumentar cobertura de tests
-- Tests de carga/performance
-- Tests de casos edge
+- ✅ Cobertura de tests al 80%+ (`npm run test:unit:coverage`)
+- ✅ Tests de carga/performance (`npm run test:load`)
+- ✅ Tests de casos edge (backtracking imposible, paginación inválida, team count incorrecto)
 
 ---
 
@@ -225,7 +225,10 @@ npm run test:unit
 npm test
 
 # Ver cobertura
-npm run test:coverage
+npm run test:unit:coverage
+
+# Tests de carga (requiere servidor corriendo)
+npm run test:load
 ```
 
 ### 3. Ejecutar el Servidor
