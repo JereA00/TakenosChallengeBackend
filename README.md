@@ -343,10 +343,13 @@ npm run test:unit
 # 1. Instalar dependencias
 npm install
 
-# 2. Inicializar la base de datos
+# 2. Generar el cliente de Prisma
+npx prisma generate
+
+# 3. Inicializar la base de datos
 npm run db:reset
 
-# 3. Iniciar el servidor en modo desarrollo
+# 4. Iniciar el servidor en modo desarrollo
 npm run dev
 ```
 
