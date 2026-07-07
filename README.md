@@ -661,3 +661,29 @@ Se agregó el middleware `cors` con `origin: "http://localhost:3000"` en `app.ts
 - Cuando `limit > 100` en la paginación, se usa 10 como valor de fallback (comportamiento que espera el test, no un error).
 - `GET /draw/statistics` retorna 404 si no hay sorteo creado.
 - El orden de los equipos en los bombos se determina por su ID (tal como estaba en el proyecto original).
+
+---
+
+## 📝 Documentación adicional
+
+- **Swagger/OpenAPI** — API documentada interactivamente en `GET /api-docs` (requiere servidor corriendo)
+- **Colección de Postman** — disponible en `docs/postman-collection.json`, importable directamente en Postman. Variable `baseUrl` apunta a `http://localhost:8000` por defecto.
+
+## 🧪 Testing — cobertura y carga
+
+```bash
+# Cobertura de tests unitarios (>80%)
+npm run test:unit:coverage
+
+# Tests de carga — requiere servidor corriendo en localhost:8000
+npm run test:load
+
+# Configuración personalizada del load test
+CONCURRENCY=20 DURATION_MS=30000 npm run test:load
+```
+
+**Casos edge cubiertos:**
+- Backtracking imposible: 36 equipos del mismo país → `DRAW_GENERATION_FAILED`
+- Paginación inválida: `page=0` o `page<0` → `INVALID_PAGINATION`
+- Team count incorrecto: menos o más de 36 equipos → `INVALID_TEAM_COUNT`
+- Límite excedido: `limit>100` se normaliza a 10
