@@ -5,9 +5,11 @@ import express, { Express } from "express";
 import logger from "morgan";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
+import swaggerUi from "swagger-ui-express";
 import { initializeDatabase } from "./src/shared/infrastructure/database.js";
 import { registerRoutes } from "./src/shared/infrastructure/routes.js";
 import { errorHandlerMiddleware } from "./src/shared/infrastructure/error-handler.middleware.js";
+import { swaggerSpec } from "./src/shared/infrastructure/swagger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -23,6 +25,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
+// Swagger UI
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get("/api-docs.json", (_req, res) => res.json(swaggerSpec));
 
 // Initialize database connection
 initializeDatabase();

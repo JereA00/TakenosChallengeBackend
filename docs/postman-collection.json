@@ -1,0 +1,249 @@
+{
+  "info": {
+    "name": "UCL Draw API",
+    "description": "REST API for the UEFA Champions League draw simulation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Draw",
+      "item": [
+        {
+          "name": "Run Draw",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/draw",
+              "host": ["{{baseUrl}}"],
+              "path": ["draw"]
+            },
+            "description": "Executes the draw algorithm and persists the result. Returns 409 if a draw already exists."
+          },
+          "response": [
+            {
+              "name": "201 - Draw created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\"message\": \"Draw created successfully\"}"
+            },
+            {
+              "name": "409 - Draw already exists",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{\"message\": \"Draw already exists\"}"
+            }
+          ]
+        },
+        {
+          "name": "Get Draw",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/draw",
+              "host": ["{{baseUrl}}"],
+              "path": ["draw"]
+            },
+            "description": "Returns the current draw with pots and all generated matches."
+          },
+          "response": [
+            {
+              "name": "200 - Draw found",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"id\": 1, \"createdAt\": \"2024-08-29T10:00:00.000Z\", \"pots\": [{\"id\": 1, \"teams\": [{\"id\": 1, \"name\": \"Real Madrid\", \"country\": {\"id\": 1, \"name\": \"Spain\"}, \"pot\": 1}]}], \"matches\": []}"
+            },
+            {
+              "name": "404 - Not found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\"message\": \"No draw found\"}"
+            }
+          ]
+        },
+        {
+          "name": "Get Draw Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/draw/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["draw", "statistics"]
+            },
+            "description": "Returns aggregated statistics about the current draw."
+          },
+          "response": [
+            {
+              "name": "200 - Statistics",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"drawId\": 1, \"createdAt\": \"2024-08-29T10:00:00.000Z\", \"totalMatches\": 144, \"matchesPerMatchDay\": {\"1\": 18, \"2\": 18}, \"matchesPerPot\": {\"1\": 36, \"2\": 36}, \"teamsPerPot\": {\"1\": 9, \"2\": 9}}"
+            },
+            {
+              "name": "404 - Not found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\"message\": \"No draw found\"}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Draw",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/draw",
+              "host": ["{{baseUrl}}"],
+              "path": ["draw"]
+            },
+            "description": "Deletes the current draw and all associated matches."
+          },
+          "response": [
+            {
+              "name": "200 - Deleted",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"message\": \"Draw deleted successfully\"}"
+            },
+            {
+              "name": "404 - Not found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\"message\": \"No draw found\"}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Teams",
+      "item": [
+        {
+          "name": "List Teams",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/teams",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams"]
+            },
+            "description": "Returns all teams participating in the UCL."
+          },
+          "response": [
+            {
+              "name": "200 - Teams list",
+              "status": "OK",
+              "code": 200,
+              "body": "[{\"id\": 1, \"name\": \"Real Madrid\", \"country\": {\"id\": 1, \"name\": \"Spain\"}, \"pot\": 1}]"
+            }
+          ]
+        },
+        {
+          "name": "Get Team by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/teams/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["teams", "1"]
+            },
+            "description": "Returns a team and all its matches."
+          },
+          "response": [
+            {
+              "name": "200 - Team with matches",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"team\": {\"id\": 1, \"name\": \"Real Madrid\", \"country\": {\"id\": 1, \"name\": \"Spain\"}, \"pot\": 1}, \"matches\": []}"
+            },
+            {
+              "name": "400 - Invalid ID",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\"message\": \"Invalid ID\"}"
+            },
+            {
+              "name": "404 - Not found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\"message\": \"Team not found\"}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Matches",
+      "item": [
+        {
+          "name": "List Matches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/matches?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["matches"],
+              "query": [
+                { "key": "teamId", "value": "", "disabled": true, "description": "Filter by team ID" },
+                { "key": "matchDay", "value": "", "disabled": true, "description": "Filter by match day" },
+                { "key": "location", "value": "", "disabled": true, "description": "home or away (requires teamId)" },
+                { "key": "countryName", "value": "", "disabled": true, "description": "Filter by country name" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "description": "Returns a paginated list of matches with optional filters."
+          },
+          "response": [
+            {
+              "name": "200 - Matches",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"matches\": [{\"id\": 1, \"drawId\": 1, \"homeTeam\": {\"id\": 1, \"name\": \"Real Madrid\", \"country\": {\"id\": 1, \"name\": \"Spain\"}}, \"awayTeam\": {\"id\": 2, \"name\": \"Bayern Munich\", \"country\": {\"id\": 2, \"name\": \"Germany\"}}, \"matchDay\": 1}], \"pagination\": {\"page\": 1, \"limit\": 10, \"total\": 144, \"totalPages\": 15}}"
+            }
+          ]
+        },
+        {
+          "name": "Get Match by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/matches/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["matches", "1"]
+            },
+            "description": "Returns a single match by its ID."
+          },
+          "response": [
+            {
+              "name": "200 - Match found",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"id\": 1, \"drawId\": 1, \"homeTeam\": {\"id\": 1, \"name\": \"Real Madrid\", \"country\": {\"id\": 1, \"name\": \"Spain\"}}, \"awayTeam\": {\"id\": 2, \"name\": \"Bayern Munich\", \"country\": {\"id\": 2, \"name\": \"Germany\"}}, \"matchDay\": 1}"
+            },
+            {
+              "name": "404 - Not found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\"message\": \"Match not found\"}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

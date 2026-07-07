@@ -408,8 +408,40 @@ describe('Champions League Draw API', () => {
       const response = await chai.request(app)
         .get('/matches')
         .query({ limit: -1 });
-      
+
       response.should.have.status(400);
+    });
+
+    it('should return 200 with paginated matches after draw', async () => {
+      const response = await chai.request(app)
+        .get('/matches');
+
+      response.should.have.status(200);
+      response.body.should.have.property('matches').that.is.an('array');
+      response.body.should.have.property('pagination');
+    });
+
+    it('should return 400 for page=0', async () => {
+      const response = await chai.request(app)
+        .get('/matches')
+        .query({ page: 0 });
+
+      response.should.have.status(400);
+    });
+
+    it('should filter by countryName', async () => {
+      const response = await chai.request(app)
+        .get('/matches')
+        .query({ countryName: 'Spain', limit: 100 });
+
+      response.should.have.status(200);
+      response.body.should.have.property('matches').that.is.an('array');
+      response.body.matches.forEach((match: any) => {
+        const isSpain =
+          match.homeTeam.country.name === 'Spain' ||
+          match.awayTeam.country.name === 'Spain';
+        isSpain.should.be.true;
+      });
     });
   });
 
@@ -558,6 +590,51 @@ describe('Champions League Draw API', () => {
       response.should.have.status(200);
       response.body.matches.should.have.length(0);
       response.body.pagination.total.should.eql(0);
+    });
+  });
+
+  describe('GET /teams', () => {
+    it('should return 200 with array of 36 teams', async () => {
+      const response = await chai.request(app)
+        .get('/teams');
+
+      response.should.have.status(200);
+      response.body.should.be.an('array');
+      response.body.should.have.length(36);
+      response.body.forEach((team: any) => {
+        team.should.have.property('id');
+        team.should.have.property('name');
+        team.should.have.property('country');
+      });
+    });
+  });
+
+  describe('GET /teams/:id', () => {
+    it('should return 400 for non-numeric id', async () => {
+      const response = await chai.request(app)
+        .get('/teams/abc');
+
+      response.should.have.status(400);
+    });
+
+    it('should return 404 for non-existent team id', async () => {
+      const response = await chai.request(app)
+        .get('/teams/9999');
+
+      response.should.have.status(404);
+    });
+
+    it('should return 200 with team and matches array after draw created', async () => {
+      await chai.request(app)
+        .post('/draw')
+        .send();
+
+      const response = await chai.request(app)
+        .get('/teams/1');
+
+      response.should.have.status(200);
+      response.body.should.have.property('team');
+      response.body.should.have.property('matches').that.is.an('array');
     });
   });
 

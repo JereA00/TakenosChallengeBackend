@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SearchMatchesService } from '../search-matches.service';
 import { MatchRepository } from '../../domain/match.repository';
 import { MatchEntity } from '../../domain/match.entity';
+import { AppError } from '../../../../shared/domain/exceptions/app-error';
 
 describe('SearchMatchesService', () => {
   let service: SearchMatchesService;
@@ -142,6 +143,34 @@ describe('SearchMatchesService', () => {
       expect(mockRepository.findAll).toHaveBeenCalledWith(
         {},
         { page: 1, limit: 10 }
+      );
+    });
+
+    it('throws AppError INVALID_PAGINATION when page is 0', async () => {
+      await expect(service.run({ page: 0 })).rejects.toThrow(AppError);
+      await expect(service.run({ page: 0 })).rejects.toThrowError(
+        expect.objectContaining({ code: 'INVALID_PAGINATION' })
+      );
+    });
+
+    it('throws AppError INVALID_PAGINATION when page is negative', async () => {
+      await expect(service.run({ page: -1 })).rejects.toThrow(AppError);
+      await expect(service.run({ page: -1 })).rejects.toThrowError(
+        expect.objectContaining({ code: 'INVALID_PAGINATION' })
+      );
+    });
+
+    it('uses limit 10 when limit exceeds 100', async () => {
+      vi.mocked(mockRepository.findAll).mockResolvedValue({
+        matches: [],
+        total: 0,
+      });
+
+      await service.run({ limit: 150 });
+
+      expect(mockRepository.findAll).toHaveBeenCalledWith(
+        {},
+        expect.objectContaining({ limit: 10 })
       );
     });
 

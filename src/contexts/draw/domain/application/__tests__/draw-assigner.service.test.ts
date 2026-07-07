@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { DrawService } from '../draw-assigner.service';
 import { Team } from '../../team';
 import { Country } from '../../country';
+import { AppError } from '../../../../../shared/domain/exceptions/app-error';
 
 describe('DrawService', () => {
   let teams: Team[];
@@ -298,10 +299,22 @@ describe('DrawService', () => {
     it('should assign correct drawId to all matches', () => {
       const drawId = 42;
       const matches = DrawService.generateMatches(teams, drawId);
-      
+
       matches.forEach(match => {
         expect(match.drawId).toBe(drawId);
       });
+    });
+
+    it('throws DRAW_GENERATION_FAILED when all 36 teams are from the same country', () => {
+      const spain = Country.create(1, 'Spain');
+      const sameCountryTeams: Team[] = Array.from({ length: 36 }, (_, i) =>
+        Team.create(i + 1, `Spain Team ${i + 1}`, spain)
+      );
+
+      expect(() => DrawService.generateMatches(sameCountryTeams, 1)).toThrow(AppError);
+      expect(() => DrawService.generateMatches(sameCountryTeams, 1)).toThrowError(
+        expect.objectContaining({ code: 'DRAW_GENERATION_FAILED' })
+      );
     });
   });
 });

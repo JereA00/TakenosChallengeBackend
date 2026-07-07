@@ -526,6 +526,106 @@ Se agregaron logs en los puntos clave del flujo para facilitar el debugging en e
 
 ---
 
+## 🏗️ Diagramas de Arquitectura
+
+### Flujo de Request HTTP
+
+```mermaid
+flowchart LR
+    A[HTTP Request] --> B[Express Router\npresentación]
+    B --> C[Application Service\naplicación]
+    C --> D[Repository Interface\ndominio]
+    D --> E[PrismaDrawRepository\ninfrastructura]
+    E --> F[(SQLite)]
+    F --> E
+    E --> D
+    D --> C
+    C --> B
+    B --> G[HTTP Response]
+```
+
+### Estructura de Capas por Contexto
+
+```mermaid
+graph TD
+    subgraph draw["Contexto: Draw"]
+        D_P[draw.router.ts\npresentación]
+        D_A[CreateDrawService\nDeleteDrawService\naplicación]
+        D_D[Draw · Match\nDrawRepository\ndominio]
+        D_I[PrismaDrawRepository\ninfrastructura]
+        D_P --> D_A --> D_D --> D_I
+    end
+
+    subgraph matches["Contexto: Matches"]
+        M_P[matches.router.ts\npresentación]
+        M_A[SearchMatchesService\naplicación]
+        M_D[Match · MatchRepository\ndominio]
+        M_I[PrismaMatchRepository\ninfrastructura]
+        M_P --> M_A --> M_D --> M_I
+    end
+
+    subgraph teams["Contexto: Teams"]
+        T_P[teams.router.ts\npresentación]
+        T_A[SearchTeamsService\naplicación]
+        T_D[Team · TeamRepository\ndominio]
+        T_I[PrismaTeamRepository\ninfrastructura]
+        T_P --> T_A --> T_D --> T_I
+    end
+
+    subgraph shared["Shared"]
+        S_C[container.ts\nInversifyJS DI]
+        S_R[routes.ts]
+        S_E[AppError]
+    end
+
+    shared -.-> draw
+    shared -.-> matches
+    shared -.-> teams
+```
+
+### Flujo de Creación del Sorteo
+
+```mermaid
+sequenceDiagram
+    actor Cliente
+    participant Router as DrawRouter
+    participant Service as CreateDrawService
+    participant Repo as DrawRepository
+    participant Prisma as PrismaDrawRepository
+    participant DB as SQLite
+
+    Cliente->>Router: POST /draw
+    Router->>Service: service.run()
+    Service->>Repo: searchCurrent()
+    Repo->>Prisma: findFirst()
+    Prisma->>DB: SELECT draw
+    DB-->>Prisma: resultado
+    Prisma-->>Repo: Draw | null
+    Repo-->>Service: Draw | null
+
+    alt Ya existe un sorteo
+        Service-->>Router: throw DrawAlreadyExistsError
+        Router-->>Cliente: 409 Conflict
+    else No existe sorteo
+        Service->>Repo: findAllTeams()
+        Repo-->>Service: Team[]
+        Service->>Service: PotAssigner.fromTeamList(teams)
+        Note over Service: Asigna cada equipo a un bombo (1-4)
+        Service->>Service: Draw.create(teams, potAssignments)
+        Note over Service: DrawAssignerService.generateMatches()<br/>Backtracking CSP por jornada
+        Service->>Repo: save(draw)
+        Repo->>Prisma: createDraw + createMatches
+        Prisma->>DB: INSERT draw, matches
+        DB-->>Prisma: ok
+        Prisma-->>Repo: void
+        Repo-->>Service: void
+        Service-->>Router: void
+        Router-->>Cliente: 201 Created
+    end
+```
+
+---
+
 ## Decisiones técnicas
 
 ### Patrón Repository — interfaz + implementación concreta

@@ -4,6 +4,43 @@ import { Country } from "../../country";
 import { PotAssigner } from "../pot-assigner.service";
 
 describe("PotAssigner", () => {
+  it("throws DrawErrors.invalidTeamCount when teams.length < 36", () => {
+    const country = Country.create(1, "Spain");
+    const teams: Team[] = Array.from({ length: 35 }, (_, i) =>
+      Team.create(i + 1, `Team ${i + 1}`, country)
+    );
+    expect(() => PotAssigner.fromTeamList(teams)).toThrow();
+    expect(() => PotAssigner.fromTeamList(teams)).toThrowError(/35/);
+  });
+
+  it("throws DrawErrors.invalidTeamCount when teams.length > 36", () => {
+    const country = Country.create(1, "Spain");
+    const teams: Team[] = Array.from({ length: 37 }, (_, i) =>
+      Team.create(i + 1, `Team ${i + 1}`, country)
+    );
+    expect(() => PotAssigner.fromTeamList(teams)).toThrow();
+    expect(() => PotAssigner.fromTeamList(teams)).toThrowError(/37/);
+  });
+
+  it("throws DrawErrors.invalidTeamCount when teams.length = 0", () => {
+    expect(() => PotAssigner.fromTeamList([])).toThrow();
+    expect(() => PotAssigner.fromTeamList([])).toThrowError(/0/);
+  });
+
+  it("correctly assigns pot 1 to teams 0-8, pot 2 to teams 9-17, pot 3 to 18-26, pot 4 to 27-35", () => {
+    const country = Country.create(1, "Spain");
+    const teams: Team[] = Array.from({ length: 36 }, (_, i) =>
+      Team.create(i + 1, `Team ${i + 1}`, country)
+    );
+    const potAssignments = PotAssigner.fromTeamList(teams);
+
+    for (let i = 0; i < 36; i++) {
+      const teamId = i + 1;
+      const expectedPot = Math.floor(i / 9) + 1;
+      expect(potAssignments.get(teamId)).toBe(expectedPot);
+    }
+  });
+
   it("should assign 36 teams into 4 pots of 9 teams according to order", () => {
     const countries = [
       Country.create(1, "ESP"),

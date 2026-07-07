@@ -8,15 +8,8 @@ export default defineConfig({
     exclude: ['node_modules', 'dist', 'test'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules',
-        'dist',
-        'test',
-        '**/*.config.ts',
-        '**/*.d.ts',
-        '**/index.ts',
-      ],
+      reporter: ['text', 'html', 'lcov'],
+      exclude: ['node_modules/**', 'dist/**', 'test/**', 'prisma/**', '**/*.d.ts', 'bin/**'],
     },
   },
   resolve: {
